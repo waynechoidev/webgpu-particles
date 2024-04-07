@@ -1,65 +1,73 @@
-import main_vert from "/shader/main.vert.wgsl";
-import main_frag from "/shader/main.frag.wgsl";
+import main_vert from "./main.vert.wgsl";
+import main_frag from "./main.frag.wgsl";
 
-const WIDTH = document.documentElement.clientWidth;
-const HEIGHT = document.documentElement.clientHeight;
+const main = async () => {
+  const adapter = await navigator.gpu?.requestAdapter();
+  const device = await adapter?.requestDevice()!;
+  if (!device) {
+    alert("need a browser that supports WebGPU");
+    return;
+  }
 
-const canvas: HTMLCanvasElement = document.querySelector("canvas")!;
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
-const adapter: GPUAdapter = (await navigator.gpu.requestAdapter())!;
-const device: GPUDevice = await adapter.requestDevice();
-const context: GPUCanvasContext = canvas.getContext("webgpu")!;
-const presentationFormat: GPUTextureFormat =
-  navigator.gpu.getPreferredCanvasFormat();
-context.configure({
-  device,
-  format: presentationFormat,
-  alphaMode: "premultiplied",
-});
+  const presentationFormat: GPUTextureFormat =
+    navigator.gpu.getPreferredCanvasFormat();
 
-const pipeline: GPURenderPipeline = device.createRenderPipeline({
-  layout: "auto",
-  vertex: {
-    module: device.createShaderModule({
-      code: main_vert,
-    }),
-  },
-  fragment: {
-    module: device.createShaderModule({
-      code: main_frag,
-    }),
-    targets: [
-      {
-        format: presentationFormat,
-      },
-    ],
-  },
-  primitive: {
-    topology: "triangle-list",
-  },
-});
+  const canvas: HTMLCanvasElement = document.querySelector("canvas")!;
+  const context: GPUCanvasContext = canvas.getContext("webgpu")!;
+  context.configure({
+    device,
+    format: presentationFormat,
+    alphaMode: "premultiplied",
+  });
 
-function render() {
-  const renderPassDescriptor: GPURenderPassDescriptor = {
-    colorAttachments: [
-      {
-        view: context.getCurrentTexture().createView(),
-        clearValue: [0, 0, 0, 1],
-        loadOp: "clear",
-        storeOp: "store",
-      },
-    ],
-  };
+  const pipeline: GPURenderPipeline = device.createRenderPipeline({
+    label: "main pipeline",
+    layout: "auto",
+    vertex: {
+      module: device.createShaderModule({
+        label: "main vertex shader",
+        code: main_vert,
+      }),
+    },
+    fragment: {
+      module: device.createShaderModule({
+        label: "main fragment shader",
+        code: main_frag,
+      }),
+      targets: [
+        {
+          format: presentationFormat,
+        },
+      ],
+    },
+    primitive: {
+      topology: "triangle-list",
+    },
+  });
 
-  const encoder = device.createCommandEncoder({ label: "our encoder" });
-  const pass = encoder.beginRenderPass(renderPassDescriptor);
-  pass.setPipeline(pipeline);
-  pass.draw(3); // call our vertex shader 3 times
-  pass.end();
+  function render() {
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          clearValue: [0, 0, 0, 1],
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    };
 
-  const commandBuffer = encoder.finish();
-  device.queue.submit([commandBuffer]);
-}
+    const encoder = device.createCommandEncoder({ label: "our encoder" });
+    const pass = encoder.beginRenderPass(renderPassDescriptor);
+    pass.setPipeline(pipeline);
+    pass.draw(3); // call our vertex shader 3 times
+    pass.end();
 
-requestAnimationFrame(render);
+    const commandBuffer = encoder.finish();
+    device.queue.submit([commandBuffer]);
+  }
+
+  requestAnimationFrame(render);
+};
+
+main();
