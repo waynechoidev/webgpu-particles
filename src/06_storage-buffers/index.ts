@@ -142,12 +142,17 @@ const main = async () => {
     pass.setPipeline(pipeline);
 
     // Set the uniform values in our JavaScript side Float32Array
-    const aspect = canvas.width / canvas.height;
+    for (let i = 0; i < kNumObjects; ++i) {
+      const dynamicOffset = i * (dynamicStorageUnitSize / 4);
 
-    objectInfos.forEach(({ scale }, ndx) => {
-      const offset = ndx * (dynamicStorageUnitSize / 4);
-      dynamicStorageValues.set([scale / aspect, scale], offset + kScaleOffset); // set the scale
-    });
+      const scale = rand(0.2, 0.5);
+      const aspect = canvas.width / canvas.height;
+
+      dynamicStorageValues.set(
+        [scale / aspect, scale],
+        dynamicOffset + kScaleOffset
+      ); // set the scale
+    }
     device.queue.writeBuffer(dynamicStorageBuffer, 0, dynamicStorageValues);
 
     pass.setBindGroup(0, bindGroup);
