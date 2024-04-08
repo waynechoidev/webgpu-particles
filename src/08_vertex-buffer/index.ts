@@ -21,13 +21,19 @@ function createCircleVertices({
 } = {}) {
   // 2 triangles per subdivision, 3 verts per tri, 2 values (xy) each.
   const numVertices = numSubdivisions * 3 * 2;
-  const vertexData = new Float32Array(numSubdivisions * 2 * 3 * 2);
+  const vertexData = new Float32Array(numVertices * (2 + 3));
 
   let offset = 0;
-  const addVertex = (x: number, y: number) => {
+  const addVertex = (x: number, y: number, color: [number, number, number]) => {
     vertexData[offset++] = x;
     vertexData[offset++] = y;
+    vertexData[offset++] = color[0];
+    vertexData[offset++] = color[1];
+    vertexData[offset++] = color[2];
   };
+
+  const innerColor: [number, number, number] = [1, 1, 1];
+  const outerColor: [number, number, number] = [0.1, 0.1, 0.1];
 
   // 2 vertices per subdivision
   //
@@ -47,14 +53,14 @@ function createCircleVertices({
     const s2 = Math.sin(angle2);
 
     // first triangle
-    addVertex(c1 * radius, s1 * radius);
-    addVertex(c2 * radius, s2 * radius);
-    addVertex(c1 * innerRadius, s1 * innerRadius);
+    addVertex(c1 * radius, s1 * radius, outerColor);
+    addVertex(c2 * radius, s2 * radius, outerColor);
+    addVertex(c1 * innerRadius, s1 * innerRadius, innerColor);
 
     // second triangle
-    addVertex(c1 * innerRadius, s1 * innerRadius);
-    addVertex(c2 * radius, s2 * radius);
-    addVertex(c2 * innerRadius, s2 * innerRadius);
+    addVertex(c1 * innerRadius, s1 * innerRadius, innerColor);
+    addVertex(c2 * radius, s2 * radius, outerColor);
+    addVertex(c2 * innerRadius, s2 * innerRadius, innerColor);
   }
 
   return {
@@ -91,9 +97,10 @@ const main = async () => {
       }),
       buffers: [
         {
-          arrayStride: 2 * Float32Array.BYTES_PER_ELEMENT, // 2 floats, 4 bytes each
+          arrayStride: 5 * Float32Array.BYTES_PER_ELEMENT, // 2 floats, 4 bytes each
           attributes: [
             { shaderLocation: 0, offset: 0, format: "float32x2" }, // position
+            { shaderLocation: 4, offset: 8, format: "float32x3" }, // perVertexColor
           ],
         },
         {
