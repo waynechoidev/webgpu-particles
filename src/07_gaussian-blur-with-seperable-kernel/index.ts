@@ -4,9 +4,6 @@ import compute_x from "./compute-x.wgsl";
 import compute_y from "./compute-y.wgsl";
 import { loadImageBitmap } from "../utils";
 
-const canvasSize = [400, 300];
-const workgroup = [16, 16];
-
 const main = async () => {
   const url = "img.jpg";
   const img = await loadImageBitmap(url);
@@ -19,8 +16,8 @@ const main = async () => {
   }
 
   const canvas = document.querySelector("canvas") as HTMLCanvasElement;
-  canvas.style.width = `${canvasSize[0]}px`;
-  canvas.style.height = `${canvasSize[1]}px`;
+  canvas.style.width = "400px";
+  canvas.style.height = "300px";
   canvas.width = img.width;
   canvas.height = img.height;
 
@@ -156,15 +153,15 @@ const main = async () => {
   computePass.setPipeline(computeXPipeline);
   computePass.setBindGroup(0, computeXBindGroup);
   computePass.dispatchWorkgroups(
-    Math.ceil(img.width / workgroup[0]),
-    Math.ceil(img.height / workgroup[1])
+    Math.ceil(img.width / 16),
+    Math.ceil(img.height / 1)
   );
 
   computePass.setPipeline(computeYPipeline);
   computePass.setBindGroup(0, computeYBindGroup);
   computePass.dispatchWorkgroups(
-    Math.ceil(img.width / workgroup[0]),
-    Math.ceil(img.height / workgroup[1])
+    Math.ceil(img.width / 1),
+    Math.ceil(img.height / 16)
   );
   computePass.end();
 

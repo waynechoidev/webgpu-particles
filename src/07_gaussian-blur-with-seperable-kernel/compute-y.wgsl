@@ -3,7 +3,7 @@
 @group(0) @binding(0) var inputTex: texture_2d<f32>;
 @group(0) @binding(1) var outputTex : texture_storage_2d<rgba8unorm, write>;
 
-@compute @workgroup_size(16, 16)
+@compute @workgroup_size(1, 16)
 fn computeSomething(
     @builtin(workgroup_id) workgroup_id : vec3u,
     @builtin(global_invocation_id) global_invocation_id : vec3u,
