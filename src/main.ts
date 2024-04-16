@@ -7,7 +7,7 @@ import { Vertex, colorTable } from "./common";
 
 const WIDTH = document.documentElement.clientWidth;
 const HEIGHT = document.documentElement.clientHeight;
-const NUM_OF_VERTEX_PER_WORKGROUP = 1000;
+const NUM_OF_VERTEX_PER_WORKGROUP = 1820;
 const NUM_OF_PARTICLE = 256 * NUM_OF_VERTEX_PER_WORKGROUP;
 const SPEED = 0.01;
 
