@@ -7,7 +7,7 @@ import { Vertex, colorTable } from "./common";
 
 const WIDTH = document.documentElement.clientWidth;
 const HEIGHT = document.documentElement.clientHeight;
-const NUM_OF_VERTEX_PER_WORKGROUP = 10;
+const NUM_OF_VERTEX_PER_WORKGROUP = 1000;
 const NUM_OF_PARTICLE = 256 * NUM_OF_VERTEX_PER_WORKGROUP;
 const SPEED = 0.01;
 
@@ -36,24 +36,31 @@ const main = async () => {
   const pointVertices: Vertex[] = [];
   for (let i = 0; i < NUM_OF_PARTICLE; ++i) {
     pointVertices.push({
-      position: [getRandomFloat(-1, 1), getRandomFloat(-1, 1)],
+      position:
+        WIDTH > HEIGHT
+          ? [
+              getRandomFloat(-1.2, 1.2),
+              getRandomFloat((-1.2 * WIDTH) / HEIGHT, (1.2 * WIDTH) / HEIGHT),
+            ]
+          : [
+              getRandomFloat((-1.2 * HEIGHT) / WIDTH, (1.2 * HEIGHT) / WIDTH),
+              getRandomFloat(-1.2, 1.2),
+            ],
       color: colorTable[getRandomInt(0, 6)],
       texCoord: [0, 0],
-      velocity: [
-        getRandomFloat(-1 * SPEED, 1 * SPEED),
-        getRandomFloat(-1 * SPEED, 1 * SPEED),
-      ],
+      speed: getRandomFloat(0.1 * SPEED, 0.5 * SPEED),
     });
   }
 
   const pointVerticesData: number[] = [];
   for (let i = 0; i < pointVertices.length; ++i) {
-    const { position, texCoord, color, velocity } = pointVertices[i];
+    const { position, texCoord, color, speed } = pointVertices[i];
     pointVerticesData.push(
       ...position,
       ...texCoord,
       ...color,
-      ...velocity,
+      speed,
+      0,
       0,
       0 // padding
     );
@@ -162,9 +169,9 @@ const main = async () => {
             {
               shaderLocation: 3, // location = 2 in vertex shader
               offset: 8 * Float32Array.BYTES_PER_ELEMENT,
-              format: "float32x2", // velocity
+              format: "float32", // speed
             },
-            // padding * 2
+            // padding * 3
           ],
         },
       ],
@@ -205,8 +212,9 @@ const main = async () => {
     entries: [
       { binding: 0, resource: { buffer: pointVertexBuffer } },
       { binding: 1, resource: { buffer: deltaUniformBuffer } },
+      { binding: 2, resource: { buffer: screenUniformBuffer } },
       {
-        binding: 2,
+        binding: 3,
         resource: { buffer: numOfVertexPerWorkgroupUniformBuffer },
       },
     ],

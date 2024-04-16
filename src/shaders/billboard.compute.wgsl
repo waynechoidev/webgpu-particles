@@ -13,7 +13,7 @@ fn computeSomething(
     
     let startIdx = i32(global_invocation_id.x) * numOfVertexPerWorkgroup;
     let endIdx = min(startIdx + numOfVertexPerWorkgroup, 256 * numOfVertexPerWorkgroup);
-    let scale:f32 = 0.05;
+    let scale:f32 = max(size.x, size.y) * 0.000007;
 
     var pos = array<vec2f, 6>(
         vec2(-1.0, 1.0 * screenRatio),
@@ -36,7 +36,7 @@ fn computeSomething(
     for (var idx = startIdx; idx < endIdx; idx++) {
         let input = inputVertex[idx];
         for (var i = 0; i < 6; i++) {
-            outputVertex[idx * 6 + i] = Vertex(input.position + pos[i] * scale, tex[i], input.color, input.velocity);
+            outputVertex[idx * 6 + i] = Vertex(input.position + pos[i] * scale, tex[i], input.color, input.speed);
         }
     }
 }
